@@ -162,6 +162,89 @@ public class SqlFunctions {
          ORDER BY released_year;
 
 
+         8 HAVING
+         GROUP BY is used when you want to apply aggregate functions on groups of rows.
+         Assume this table:
+
+         employees
+         | id | name | department | salary |
+         | -- | ---- | ---------- | ------ |
+         | 1  | A    | IT         | 50000  |
+         | 2  | B    | IT         | 60000  |
+         | 3  | C    | HR         | 40000  |
+         | 4  | D    | HR         | 45000  |
+         | 5  | E    | Finance    | 70000  |
+
+         Example: Average salary per department
+         SELECT department, AVG(salary)
+         FROM employees
+         GROUP BY department;
+
+         This groups rows by department, then calculates average salary for each group.
+         The problem WHERE cannot solve
+
+         Now suppose you want:
+
+         “Show only those departments whose average salary is greater than 50,000”
+
+         Your first instinct might be:
+         SELECT department, AVG(salary)
+         FROM employees
+         WHERE AVG(salary) > 50000   -- ❌ WRONG
+         GROUP BY department;
+
+         ❌ This fails because:
+         WHERE works row by row
+         AVG(salary) is calculated after grouping
+         At the time WHERE runs, AVG(salary) does not exist
+
+         Enter HAVING (this is the key idea)
+         🔑 Golden Rule
+         WHERE → filters rows
+         HAVING → filters groups
+
+         So:
+         Use WHERE before grouping
+         Use HAVING after grouping
+
+         Same query, correct way (using HAVING)
+         SELECT department, AVG(salary) AS avg_salary
+         FROM employees
+         GROUP BY department
+         HAVING AVG(salary) > 50000;
+
+         MySQL executes in this order:
+
+         FROM
+         WHERE
+         GROUP BY
+         HAVING
+         SELECT
+         ORDER BY
+
+         So logically:
+         WHERE → before grouping
+         HAVING → after grouping
+
+         Using WHERE and HAVING together (real-world case)
+
+         “For employees with salary ≥ 40,000, show departments having more than 1 employee”
+
+         SELECT department, COUNT(*) AS emp_count
+         FROM employees
+         WHERE salary >= 40000
+         GROUP BY department
+         HAVING COUNT(*) > 1;
+
+         What happens:
+         WHERE removes low-salary employees
+         GROUP BY forms departments
+         HAVING removes departments with ≤1 employee
+
+         WHERE → “Which rows should enter the grouping?”
+
+         HAVING → “Which groups should survive after grouping?”
+
          */
     }
 }
